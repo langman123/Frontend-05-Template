@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .cell {
+      width: 100px;
+      height: 100px;
+      background-color: chartreuse;
+      display: inline-block;
+      border: 1px solid #fff;
+      vertical-align: bottom;
+
+      text-align: center;
+      font-size: 50px;
+      line-height: 100px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="board"></div>
+  <script>
+    var patten = [
+      [2, 0, 0],
+      [1, 1, 0],
+      [1, 0, 0]
+    ]
+    let color = 1
+
+    function show() {
+      let board = document.getElementById("board")
+      board.innerHTML = ""
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          let cell = document.createElement("div")
+          cell.classList.add("cell")
+          cell.innerText =
+            patten[i][j] == 2 ? "❌" :
+            patten[i][j] == 1 ? "⭕" : "";
+          cell.addEventListener("click", () => move(j, i))
+          board.appendChild(cell)
+        }
+        board.appendChild(document.createElement("br"))
+      }
+    }
+
+    function move(x, y) {
+      patten[y][x] = color
+      if (check()) {
+        alert(color ==2 ? "❌ is winner" : "⭕ is winner")
+      }
+      color = 3 - color
+      show()
+      
+    }
+
+    function check() {
+      //横向判断输赢
+      for (let i = 0; i < 3; i++) {
+        let win = true
+        for (let j = 0; j < 3; j++) {
+           if(patten[i][j] !== color) {
+             win = false
+           }
+        }
+        if(win){
+          return true
+        }
+      }
+      //纵向
+      for (let i = 0; i < 3; i++) {
+        let win = true
+        for (let j = 0; j < 3; j++) {
+          if(patten[j][i] !==color){
+            win = false
+          }          
+        }
+        if(win){
+          return true
+        }
+      }
+      //正斜向
+      {
+        let win = true
+        for (let i = 0; i < 3; i++) {
+          if(patten[i][i] !==color)
+          win=false
+        }
+        if(win){
+          return true
+        }
+      }
+      //反斜向
+      {
+        let win = true
+        for (let i = 0; i < 3; i++) {
+          if(patten[2-i][i] !== color){
+            win = false
+          }
+        }
+        if (win) {
+          return true
+        }
+      }
+    }
+
+
+    show(patten)
+  </script>
+</body>
+
+</html>

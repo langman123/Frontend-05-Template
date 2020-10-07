@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    div {
+      border-radius: 100px;
+      width: 150px;
+      height: 150px;
+      border: black 1px solid;
+      display: inline-block;
+      margin: 30px;
+      background-color: black;
+    }
+
+    .red.light {
+      background-color: red;
+    }
+
+    .yell.light {
+      background-color: yellow;
+    }
+
+    .green.light {
+      background-color: green;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="red"></div>
+  <div class="yell"></div>
+  <div class="green"></div>
+  <button id="next">next</button>
+  <script>
+    function green() {
+      var light = document.getElementsByTagName("div")
+      for (let i = 0; i < 3; i++) {
+        light[i].classList.remove("light")
+      }
+      document.getElementsByClassName("green")[0].classList.add("light")
+
+    }
+
+    function red() {
+      var light = document.getElementsByTagName("div")
+      for (let i = 0; i < 3; i++) {
+        light[i].classList.remove("light")
+      }
+      document.getElementsByClassName("red")[0].classList.add("light")
+    }
+
+    function yellow() {
+      var light = document.getElementsByTagName("div")
+      for (let i = 0; i < 3; i++) {
+        light[i].classList.remove("light")
+      }
+      document.getElementsByClassName("yell")[0].classList.add("light")
+    }
+
+    function sleep(t) {
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, t)
+      })
+    }
+
+    function happen(element, eventName) {
+      return new Promise((resolve, reject) => {
+        element.addEventListener(eventName,resolve,{once:true})
+      })
+    }
+
+    // async function go() {
+    //   while (true) {
+    //     green()
+    //     await sleep(1000)
+    //     yellow()
+    //     await sleep(2000)
+    //     red()
+    //     await sleep(5000)
+    //   }
+
+    // }
+
+    async function go(){
+      while (true) {
+        green()
+        await happen(document.getElementById("next"),"click")
+        yellow()
+        await happen(document.getElementById("next"),"click")
+        red()
+        await happen(document.getElementById("next"),"click")
+      }
+    }
+    go()
+  </script>
+</body>
+
+</html>
