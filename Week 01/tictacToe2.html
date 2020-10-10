@@ -24,10 +24,11 @@
 <body>
   <div id="board"></div>
   <script>
+    //一维数组表示二维数组
     var patten = [
-      [0, 0, 2],
-      [0, 1, 0],
-      [0, 0, 0]
+      0,0,0,
+      0,0,0,
+      0,0,0
     ]
     let color = 1
 
@@ -39,27 +40,36 @@
           let cell = document.createElement("div")
           cell.classList.add("cell")
           cell.innerText =
-            patten[i][j] == 2 ? "❌" :
-            patten[i][j] == 1 ? "⭕" : "";
-          cell.addEventListener("click", () => move(j, i))
+            patten[i*3+j] == 2 ? "❌" :
+            patten[i*3+j] == 1 ? "⭕" : "";
+          cell.addEventListener("click", () => useMove(j, i))
           board.appendChild(cell)
         }
         board.appendChild(document.createElement("br"))
       }
     }
 
-    function move(x, y) {
-      patten[y][x] = color
+    function useMove(x, y) {
+      patten[y*3+x] = color
       if (check(patten, color)) {
         alert(color == 2 ? "❌ is winner" : "⭕ is winner")
       }
       color = 3 - color
+      console.log(bestChoice(patten, color));
       show()
+      computeMove()
+    }
 
-      if (willWin(patten, color)) {
-        console.log(color == 2 ? "❌ is willing winner" : "⭕ is willing winner")
+    function computeMove(){
+      let choice = bestChoice(patten,color)
+      if (choice.point) {
+        patten[choice.point[1]*3+choice.point[0]] = color
       }
-
+      if (check(patten, color)) {
+        alert(color == 2 ? "❌ is winner" : "⭕ is winner")
+      }
+      color=3-color
+      show()
     }
 
     function check(patten, color) {
@@ -67,7 +77,7 @@
       for (let i = 0; i < 3; i++) {
         let win = true
         for (let j = 0; j < 3; j++) {
-          if (patten[i][j] !== color) {
+          if (patten[i*3+j] !== color) {
             win = false
           }
         }
@@ -79,7 +89,7 @@
       for (let i = 0; i < 3; i++) {
         let win = true
         for (let j = 0; j < 3; j++) {
-          if (patten[j][i] !== color) {
+          if (patten[j*3+i] !== color) {
             win = false
           }
         }
@@ -91,7 +101,7 @@
       {
         let win = true
         for (let i = 0; i < 3; i++) {
-          if (patten[i][i] !== color)
+          if (patten[i*3+i] !== color)
             win = false
         }
         if (win) {
@@ -102,7 +112,7 @@
       {
         let win = true
         for (let i = 0; i < 3; i++) {
-          if (patten[2 - i][i] !== color) {
+          if (patten[i*2+2] !== color) {
             win = false
           }
         }
@@ -113,17 +123,18 @@
     }
 
     function clone(patten) {
-      return JSON.parse(JSON.stringify(patten))
+      // return JSON.parse(JSON.stringify(patten))
+      return Object.create(patten)
     }
 
     //判断将要胜利
     function willWin(patten, color) {
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
-          if (patten[i][j] !== 0)
+          if (patten[i*3+j] !== 0)
             continue;
           let tmp = clone(patten)
-          tmp[i][j] = color
+          tmp[i*3+j] = color
           if (check(tmp, color)) {
             return [j, i]
           }
@@ -131,31 +142,34 @@
       }
       return null
     }
-
+    
     //AI
     function bestChoice(patten, color) {
       //特殊情况
-      let p;
-      if (p = willWin(patten, color)) {
+      let point= willWin(patten, color)
+      if (point) {
         return {
-          point: p,
+          point: point,
           result: 1
         }
       }
       //胜利1；和棋0；输棋-1
-      let result = -2
-      let point = null
-      for (let i = 0; i < 3; i++) {
+      let result = -1
+
+      outer:for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
-          if (patten[i][j])
+          if (patten[i*3+j])
             continue;
           let temp = clone(patten)
-          temp[i][j] = color
+          temp[i*3+j] = color
           let r = bestChoice(temp, 3 - color).result
 
           if (-r > result) {
             result = -r
             point = [j, i]
+          }
+          if (result == 1) {
+            break outer;
           }
         }
       }
@@ -166,7 +180,7 @@
     }
 
     show(patten)
-    console.log(bestChoice(patten, color));
+   
   </script>
 </body>
 
