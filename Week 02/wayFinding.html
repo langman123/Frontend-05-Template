@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .cell {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      line-height: 7px;
+      background-color: grey;
+      border-bottom: white solid 1px;
+      border-right: solid white 1px;
+      vertical-align: top;
+
+    }
+
+    #container {
+      width: 701px;
+      font-size: 0px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container"></div>
+  <button onclick="window.localStorage['map'] = JSON.stringify(map)">save</button>
+
+  <script>
+    //地图编辑器
+    let map = localStorage['map'] ? JSON.parse(localStorage['map']) : new Array(10000).fill(0)
+
+    let container = document.getElementById("container")
+    class Sorted{
+      constructor(data, compare){
+        this.data = [...data]
+        this.compare = compare
+      }
+      take(){
+        //最小值索引，从第一个元素开始取值
+        let minIndex = 0
+        //最小值
+        let min = this.data[minIndex]
+        //遍历数组
+        for (let index = 0; index < this.data.length; index++) {
+          //如果当前最小值大于遍历数组的当前元素的值，true
+          if(this.compare(min, this.data[index]) > 0){
+            //如果最小值大于当前数组元素，则数组当前元素的值赋值给最小值
+           min  = this.data[index]
+           //数组当前元素的所有赋给最小值做索引
+            minIndex = index
+          }
+        }
+        //取出数组中最小的值
+        this.data[minIndex] = this.data[this.data.length - 1]
+        this.data[this.data.length - 1] = min
+        this.data.pop()
+        return min
+      }
+      give(data){
+        this.data.push(data)
+      }
+      get length(){
+        return this.data.length
+      }
+    }
+    for (let i = 0; i < 100; i++) {
+      for (let j = 0; j < 100; j++) {
+
+        let cell = document.createElement("div")
+        cell.classList.add("cell")
+
+        if (map[100 * i + j] == 1) {
+          cell.style.backgroundColor = "black"
+        }
+
+        cell.addEventListener("mousemove", () => {
+          if (mousedown) {
+            if (clear) {
+              cell.style.backgroundColor = "grey"
+              map[100 * i + j] = 0
+            } else {
+              cell.style.backgroundColor = "black"
+              map[100 * i + j] = 1
+            }
+          }
+        })
+        container.appendChild(cell)
+      }
+    }
+
+    let mousedown = false
+    let clear = false
+    document.addEventListener("mousedown", e => {
+      mousedown = true
+      //console.log(e.which === 3);
+      clear = (e.which === 3)
+    })
+    document.addEventListener("mouseup", () => {
+      mousedown = false
+    })
+    //去除右键弹出菜单事件
+    document.addEventListener("contextmenu", e => e.preventDefault())
+
+    //解决无法可视化--> 使用异步
+    function sleep(t) {
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, t)
+      })
+    }
+    
+    //遍历地图，找到终点
+    //拓展：深度优先遍历（数据结构：先进后出）-->stack栈{pop,push}和{shift,unshift}组合
+
+    //广度优先遍历（数据结构：先进先出）-->队列queue{push,shift}和{pop,unshift}组合
+    async function findPath(map, start, end) {
+      function distance(point){
+        return (end[0] - point[0]) ** 2 + (end[1] - point[1]) ** 2
+      }
+      //queue ：所有搜索算法的灵魂和区别。
+      // let queue = [start]
+      let queue = new Sorted([start], (a, b) => distance(a) - distance(b))
+
+      let table = Object.create(map)
+
+      async function insert(x, y, pre) {
+        if (x < 0 || x >= 100 || y < 0 || y >= 100) {
+          return;
+        }
+        if (table[100 * y + x]) {
+          return;
+        }
+        //await sleep(1)
+        //遍历过的点加一个颜色
+        container.children[100 * y + x].style.backgroundColor = "lightgreen"
+        // map[100 * y + x] = 2
+        table[100 * y + x] = pre
+        //console.log(pre);
+        queue.give([x, y])
+        
+      }
+
+      while (queue.length) {
+        let [x, y] = queue.take()
+        //console.log(x, y);
+        //始点与终点相同
+        if (x === end[0] && y === end[1]) {
+          let path = []
+
+          while (x != start[0] || y != start[1]) {
+            path.push(map[100 * y + x]);
+            //解构赋值
+            [x, y] = table[100 * y + x];
+            //console.log([x,y]);
+            await sleep(10)
+            container.children[100 * y + x].style.backgroundColor = "red"
+           // console.log(path);
+          }
+          
+          return path
+
+        }
+
+        await insert(x - 1, y, [x, y])
+        await insert(x, y - 1, [x, y])
+        await insert(x, y + 1, [x, y])
+        await insert(x + 1, y, [x, y])
+
+        //斜向
+        await insert(x - 1, y - 1, [x, y])
+        await insert(x + 1, y + 1, [x, y])
+        await insert(x + 1, y - 1, [x, y])
+        await insert(x - 1, y + 1, [x, y])
+      }
+      return null;
+    }
+  </script>
+</body>
+
+</html>
